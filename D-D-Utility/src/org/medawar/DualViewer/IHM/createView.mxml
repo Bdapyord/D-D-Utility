@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple custom MXML TitleWindow component.
+The TitleWindowApp application displays this component. 
+You cannot run it independently. -->
+
+<s:TitleWindow	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx"
+				title="Create a view" close="PopUpManager.removePopUp(this);"  width="350" height="206" enabled="true">
+	<fx:Script>
+		<![CDATA[       
+			import flashx.textLayout.formats.Direction;
+			
+			import mx.controls.Text;
+			import mx.managers.PopUpManager;
+			
+			// A reference to the TextInput control in which to put the result.
+			public var path:String;
+			public var nameView:String;
+			public var created:Boolean = false;
+			private const dataFilter:FileFilter = new FileFilter("View (viw)","*.viw");
+			// TODO SET FILTER TO BACKGROUND
+			// Event handler for the OK button.
+			private function returnValues():void {
+				path= pathTI.text;
+				nameView= nameTI.text;
+				created=true;
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function chooseImagePath(event:MouseEvent):void
+			{
+				var f:File = new File(DualViewerMaster.crntGroup.getLibPath());
+				file = f;
+				f.resolvePath(DualViewerMaster.crntGroup.getLibPath());
+				f.browseForOpen("Select the view picture");
+				f.addEventListener(Event.SELECT, function (event:Event):void {
+					pathTI.text = f.nativePath;
+				});			
+			}
+			protected function openCalibrate(event:MouseEvent):void
+			{/*
+				c.init(pathTI.text);
+				PopUpManager.centerPopUp(c);
+				c.crtBtn.addEventListener(MouseEvent.CLICK,function():void{
+					c.create();
+					if(c.created){
+						xmlCompaign = ;
+						var dskTopFileStream:FileStream = new FileStream();
+						var dskTopFile:File = File.documentsDirectory;
+						dskTopFile = dskTopFile.resolvePath(c.path+"/+c.nameCm+".cmp");
+						
+						dskTopFileStream.openAsync (dskTopFile, FileMode.WRITE);
+						dskTopFileStream.writeUTFBytes (xmlCompaign);
+						dskTopFileStream.close ();
+						
+						mBar.menuBarItems[0].data.item.(valueOf().@id=="itNwMap").@enabled="true";
+						mBar.menuBarItems[0].data.item.(valueOf().@id=="itSASMap").@enabled="true";
+						mBar.menuBarItems[0].data.item.(valueOf().@id=="itSMap").@enabled="true";
+						mBar.menuBarItems[0].data.item.(valueOf().@id=="itSAsCmp").@enabled="true";
+						mBar.menuBarItems[0].data.item.(valueOf().@id=="itSCmp").@enabled="true";
+						currentState="Editing";
+					}
+				});*/
+					
+			}
+			// Called from the main frame
+			public function create():void{
+				if(pathTI.text!="" && nameTI.text!=""){
+					var f:File = File.documentsDirectory;
+					returnValues();
+				}
+			}
+			
+
+			protected function crtBtn_clickHandler(event:MouseEvent):void
+			{
+				if(pathTI.text!="" && nameTI.text!=""){
+					<map> 
+						<name>{c.nameCm}</name>
+						<libpath>{c.libPaht}</libpath>
+						<path>{c.path}</path>
+					</map>;
+				}
+			}
+
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" paddingTop="30" horizontalAlign="center" height="63" bottom="0" horizontalCenter="0">
+		<mx:Spacer width="30"/>
+		<mx:Button label="Create" id="crtBtn" click="crtBtn_clickHandler(event)"/>
+		<mx:Button label="Cancel" click="PopUpManager.removePopUp(this)"/>
+	</mx:HBox>
+	
+	<mx:Form horizontalCenter="0" top="0">
+		<mx:FormItem label="Name *:">
+			<mx:TextInput   id="nameTI" editable="true" width="180"/>
+		</mx:FormItem>
+		<mx:FormItem label="Background *:">
+			<mx:TextInput click="chooseImagePath(event)" id="pathTI"  editable="false" width="180"/>			
+		</mx:FormItem>
+	</mx:Form>
+</s:TitleWindow>

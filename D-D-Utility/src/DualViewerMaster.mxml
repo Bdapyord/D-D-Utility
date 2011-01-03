@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   xmlns:ns1="*" 
+					   xmlns:spark="library://ns.tink.ws/flex/spark" xmlns:flash="ws.tink.mx.flash.*" xmlns:map="org.medawar.DualViewer.map.*" currentState="Init" width.Init="800" height.Init="600" width.Editing="1024" height.Editing="768">
+	
+	<fx:Script source="./org/medawar/DualViewer/scripts/masterControler.as"/>
+	<s:states>
+		<s:State name="Editing"/>
+		<s:State name="Init" />
+	</s:states>
+	<fx:Declarations>
+		<fx:XMLList id="menuT" xmlns="">
+					<menu format="e4x" id="file" label="File">
+						<item id="itNwCmp" label="New project" />
+						<item id="itOpCmp" label="Open project" />
+						<item id="itSCmp" label="Save project" enabled="false" />
+						<fake type="separator" />
+						<item id="itNwMap" label="New view" enabled="false"/>
+						<fake type="separator" />
+						<item label="Exit" />
+					</menu>			
+		</fx:XMLList>
+	</fx:Declarations>
+	
+	 
+	<mx:MenuBar id="mBar" width="100%"
+				labelField="@label"
+				horizontalCenter="0" top="0" dataProvider="{menuT}"
+				creationComplete="initMenu();">
+	</mx:MenuBar>
+	<mx:HDividedBox top="30" width="100%" height="100%">
+		<mx:HBox width="10%"  height="100%" width.Editing="171">
+			<s:VGroup width="100%" height="100%" includeIn="Editing" horizontalAlign="left" gap="3" paddingLeft="10">
+				<s:Button label="Add" click="addObject(event)"/>
+				<s:Button label="sync" click="sendDataToClient(event)"/>
+				<mx:HRule width="100%"/>
+				<s:Label text="Views" fontSize="11"/>
+				<s:List width="152" enabled="true" dataProvider="{m.views}" change="changeView(event)"></s:List>
+			</s:VGroup>
+			<mx:HTML includeIn="Init" width="100%" height="100%" location="http://www.medawar.org/"/>
+		</mx:HBox>
+		<mx:HBox width="80%" height="100%" id="mapContent" horizontalScrollPolicy="off" verticalScrollPolicy="off" includeIn="Editing">
+			<s:Group width="100%" height="100%" id="viewContainer" />
+			
+
+				
+		</mx:HBox>
+	</mx:HDividedBox>
+	
+</s:WindowedApplication>

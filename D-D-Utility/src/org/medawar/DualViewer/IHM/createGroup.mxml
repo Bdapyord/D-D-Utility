@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple custom MXML TitleWindow component.
+The TitleWindowApp application displays this component. 
+You cannot run it independently. -->
+
+<s:TitleWindow	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+				title="Create group of view" close="PopUpManager.removePopUp(this);"  width="350" height="206" enabled="true">
+	<fx:Script>
+		<![CDATA[       
+		import mx.controls.Text;
+		import mx.managers.PopUpManager;
+		
+		// A reference to the TextInput control in which to put the result.
+		public var path:String;
+		public var libPaht:String;
+		public var nameCm:String;
+		public var created:Boolean = false;
+		private const dataFilter:FileFilter = new FileFilter("Campaign (cmp)","*.cmp");
+		
+		// Event handler for the OK button.
+		private function returnValues():void {
+			path= pathTI.text+"/"+nameTI.text;
+			libPaht= libPathTI.text;
+			nameCm= nameTI.text;
+			created=true;
+			PopUpManager.removePopUp(this);
+		}
+		
+		protected function chooseSavePath(event:MouseEvent):void
+		{
+			var f:File = File.applicationStorageDirectory;
+			file = f;
+			f.browseForDirectory("Select the campaign path to save");
+			f.addEventListener(Event.SELECT, function (event:Event):void {
+				pathTI.text = f.nativePath;
+			});			
+		}
+		protected function chooseLibPath(event:MouseEvent):void
+		{
+			var f:File = File.documentsDirectory;
+			file = f;
+			f.browseForDirectory("Select the campaign library");
+			f.addEventListener(Event.SELECT, function (event:Event):void {
+				libPathTI.text = f.nativePath;
+			});					
+		}
+		
+		public function create():void{
+			if(libPathTI.text!="" && pathTI.text!="" && nameTI.text!=""){
+				var f:File = File.documentsDirectory;
+				file = f;
+				f.nativePath = pathTI.text+"/"+nameTI.text;
+				f.createDirectory();
+				returnValues();
+			}
+		}
+		
+		]]>
+	</fx:Script>
+
+	<mx:HBox width="100%" paddingTop="30" horizontalAlign="center" height="63" bottom="0" horizontalCenter="0">
+		<mx:Spacer width="30"/>
+		<mx:Button label="Create" id="crtBtn"/>
+		<mx:Button label="Cancel" click="PopUpManager.removePopUp(this)"/>
+	</mx:HBox>
+
+	<mx:Form horizontalCenter="0" top="0">
+		<mx:FormItem label="Name *:">
+			<mx:TextInput   id="nameTI" editable="true" width="180"/>
+		</mx:FormItem>
+		<mx:FormItem label="Path *:">
+			<mx:TextInput click="chooseSavePath(event)" id="pathTI"  editable="false" width="180"/>			
+		</mx:FormItem>
+		<mx:FormItem label="Librairy path *:">
+			<mx:TextInput click="chooseLibPath(event)" id="libPathTI"  editable="false" width="180"/>			
+		</mx:FormItem>
+	</mx:Form>
+</s:TitleWindow>

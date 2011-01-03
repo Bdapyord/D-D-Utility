@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Module xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		   xmlns:s="library://ns.adobe.com/flex/spark" 
+		   xmlns:mx="library://ns.adobe.com/flex/mx" layout="absolute" width="100%" height="100%" borderColor="#0096FF" 
+		   resize="resize(event)" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+
+	<fx:Declarations>
+		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
+	</fx:Declarations>
+	<mx:Canvas id="cnv" mouseDown="cnv_mouseDownHandler(event)" x="0" y="0" verticalScrollPolicy="off" horizontalScrollPolicy="off">
+		<mx:Image id="bg" y="0" x="0" scaleContent="false" autoLoad="true"/>
+	</mx:Canvas>
+	<s:HSlider id="slider" horizontalCenter="0" bottom="61" width="378" minimum="10" maximum="150" stepSize="1" value="80" height="10" skinClass="Hscrolskin" 
+			changeEnd="slider_changeEndHandler(event)" changeStart="slider_changeStartHandler(event)" change="slider_valueCommitHandler(event)" liveDragging="true"/>
+	<mx:Button icon="@Embed(source='zoomAvant.png')"  width="38" height="38" bottom="18" horizontalCenter="-170" autoRepeat="true" 
+			   buttonDown="zoomIn(event)" mouseUp="draw()"/>
+	<mx:Button icon="@Embed(source='zoomArriere.png')"  width="38" height="38" bottom="18" horizontalCenter="-127" mouseUp="draw()" autoRepeat="true" buttonDown="zoomOut(event)"/>
+	<mx:Button icon="@Embed(source='fleche.png')"  width="38" height="38" bottom="17.649994" horizontalCenter="47"/>
+	<mx:Button icon="@Embed(source='flecheB.png')"  width="38" height="38" bottom="17.649994" horizontalCenter="170" />
+	<mx:Button icon="@Embed(source='flecheG.png')"  width="38" height="38" bottom="18" horizontalCenter="129"/>
+	<mx:Button icon="@Embed(source='flecheD.png')"  width="38" height="38" bottom="18" horizontalCenter="88" />
+	<mx:Image source="target.png" horizontalCenter="0" verticalCenter="0" autoLoad="true" scaleContent="false" alpha="0.34" mouseEnabled="false" mouseFocusEnabled="false"  themeColor="#181818"/>
+
+	<fx:Script>
+		<![CDATA[
+			import flash.sampler.NewObjectSample;
+			
+			import mx.containers.Canvas;
+			import mx.controls.Alert;
+			import mx.controls.Image;
+			import mx.core.UIComponent;
+			import mx.core.mx_internal;
+			import mx.events.DragEvent;
+			import mx.events.FlexEvent;
+			import mx.events.ResizeEvent;
+			import mx.geom.Transform;
+			
+			import org.osmf.utils.URL;
+			
+			import spark.primitives.BitmapImage;
+			private var src:String ="";
+			private var widthP:int=0;
+			private var heightP:int=0;
+			private var tileSizeP:int=0;
+			private var widthAct:Number=0;
+			private var heightAct:Number=0;
+			private var posX:Number = 0;
+			private var posY:Number = 0;
+			private var loadedClFrom:int=0;
+			private var loadedLgFrom:int=0;
+			private var lastZoom:int=1;
+			private var exists:Dictionary = new Dictionary();
+			private var activate:Boolean = false;
+			private var reDraw:Boolean = true;
+			private var wheelEvent:Boolean = true;
+			private var lastDetZoom:int=0;
+
+
+			private var rectangle:Shape = new Shape; // Mask de la zone
+			private var c:UIComponent = new UIComponent();// Le conteneur du masque
+			var propXML:XML;// Les proptiétés
+			public function getZoom():String{
+				return slider.value.toString();
+			}
+			public function setZoom(val:String):void{
+				slider.value = int(val);
+			}
+			public function getX():String{
+				return posX.toString();
+			}
+			public function setX(x:String):void{
+				posX = int(x);
+			}
+			public function getY():String{
+				return posY.toString();
+			}
+			public function setY(y:String):void{
+				 posY= int(y);
+			}
+			public function redraw(){
+				reDraw = true;
+				draw();
+				reDraw = false;
+			}
+			public function setPropriety( source:String ):void{
+				src = source;
+				rectangle.graphics.beginFill(0xFF0000); // choosing the colour for the fill, here it is red  
+				rectangle.graphics.drawRect(0, 0,800,800); // (x spacing, y spacing, width, height)  
+				rectangle.graphics.endFill(); // not always needed but I like to put it in to end the fill
+				c.addChild(rectangle);
+				addChild(c);
+				cnv.mask = c;
+				var myLoader:URLLoader = new URLLoader();
+				myLoader.load(new URLRequest(src+"/ImageProperties.xml"));
+				myLoader.addEventListener(Event.COMPLETE, processXML)
+				function processXML(e:Event):void {
+					propXML = new XML(e.target.data);
+					widthP = propXML.width;
+					heightP = propXML.height;
+					tileSizeP = propXML.tilesize;
+					posX = widthP/2;
+					posY = heightP/2;
+					activate =true;
+					bg.source= src+"//icone.jpg";
+					resizeElemsAuto();
+
+				}
+			}
+			function resizeElemsAuto():void{
+				resizeElems(widthAct,heightAct);
+			}
+			function resizeElems(width:int, height:int):void{
+				if(!activate) return;
+				widthAct = this.width;
+				heightAct = this.height;
+				var zoom:int = (widthAct * 100)/widthP;
+				zoom = Math.max(zoom,(heightAct*100)/heightP);
+				rectangle.width = this.width;
+				rectangle.height = this.height;
+				slider.value = Math.round(zoom);
+				draw();
+			}
+			function getZommNormalise():int{
+				return slider.value-slider.value%10;
+			}
+			/**
+			 * Retourne la colone d'après une position 
+			 */
+			function getImageCol(xP:int):int{
+				if(xP<0)return 0;
+				var zm:int = getZommNormalise();
+				return ((xP*(zm/100))/tileSizeP);
+			}
+			/**
+			 * Retourne la ligne d'après une position 
+			 */
+			function getImageLn(yP:int):int{
+				if(yP<0)return 0;
+				var zm:int = getZommNormalise();
+				return ((yP*(zm/100))/tileSizeP); 
+			}
+			public function draw():void{
+				if(!activate)return;			
+				var zm:int = getZommNormalise();
+				var bgscale:int =  (widthP*zm/100)/tileSizeP;
+				if(widthP<heightP)
+					bgscale = (heightP*zm/100)/tileSizeP;
+				bg.scaleX = bgscale;
+				bg.scaleY = bgscale;
+				if(lastZoom == zm && !reDraw){
+					cnv.transformX =(posX*zm/100);
+					cnv.transformY =(posY*zm/100);
+					cnv.scaleX = (1+(slider.value-zm)/100);
+					cnv.scaleY = (1+(slider.value-zm)/100);
+					return;
+				}
+
+				
+				var cl:int = (((widthAct)/tileSizeP));
+				var lg:int = (((heightAct)/tileSizeP));
+				var clX = getImageCol(posX);
+				var lgY = getImageLn(posY);
+				drawRegion(clX-cl,lgY-lg,2*cl,2*lg);
+				cnv.x=(-posX*zm/100)+widthAct/2;
+				cnv.y=(-posY*zm/100)+heightAct/2;
+				var clMax:int = ((widthP*(lastZoom/100)) /tileSizeP)+1;
+				var lgMax:int = ((heightP*(lastZoom/100))/tileSizeP)+1
+				cnv.transformX =(posX*zm/100);
+				cnv.transformY =(posY*zm/100);
+				cnv.scaleX = (1+(slider.value-zm)/100);
+				cnv.scaleY = (1+(slider.value-zm)/100);
+				var img:Image;
+				if(lastZoom != zm){
+					for(var i:int=0;i<clMax;i++){
+						for(var n:int=0 ;n<lgMax;n++){
+							if(exists.hasOwnProperty(lastZoom+"_"+i+"_"+n)){
+								img = exists[lastZoom+"_"+i+"_"+n];
+								img.visible = false;
+							}
+						}
+					}
+				}
+				lastZoom = zm;
+
+			}
+			protected function drawRegion(x:int , y:int , deltaX:int, deltaY:int){
+				var zm:int = getZommNormalise();
+				var clMax:int = ((widthP*(zm/100)) /tileSizeP)+1;
+				var lgMax:int = ((heightP*(zm/100))/tileSizeP)+1;
+				var clDep:int = x;
+				var lgDep:int = y;
+				if(clDep<0)clDep =0;
+				if(lgDep<0)lgDep =0;
+				var limtX:int =clDep+deltaX;
+				var limtY:int =lgDep+deltaY;
+				if(limtX > clMax)limtX = clMax;
+				if(limtY > lgMax)limtY = lgMax;
+				var xDep:Number  =clDep*tileSizeP;
+				var yDep:Number =lgDep*tileSizeP;
+				var img:Image;
+				for(var i:int=clDep ;i<limtX;i++){
+					for(var n:int=lgDep ;n<limtY;n++){
+						if(!exists.hasOwnProperty(zm+"_"+i+"_"+n)){
+							img = new Image();
+							img.name = zm+"_"+i+"_"+n;
+							img.width = tileSizeP;
+							img.height= tileSizeP;
+							img.autoLoad = true;
+							img.scaleContent = false;
+							img.source = src+"/"+img.name+".jpg";
+							exists[img.name]= img;	
+							img.x=xDep;
+							img.y=yDep;
+							cnv.addElement(img);	
+						}else{
+							var img:Image = exists[zm+"_"+i+"_"+n];
+							img.visible = true;
+						}
+						yDep+=tileSizeP;
+					}
+					xDep+=tileSizeP;
+					yDep=lgDep*tileSizeP;
+				}
+			}
+			protected function resize(event:ResizeEvent):void
+			{
+				reDraw = true;
+				resizeElems(this.width,this.height);
+				reDraw = false;
+
+			}
+
+			protected function cnv_mouseDownHandler(event:MouseEvent):void
+			{
+				cnv.addEventListener(MouseEvent.MOUSE_UP,cnv_mouseUpHandler);
+				cnv.removeEventListener(MouseEvent.MOUSE_DOWN,cnv_mouseDownHandler);
+				cnv.startDrag();
+			}
+
+
+			protected function cnv_mouseUpHandler(event:MouseEvent):void
+			{
+				cnv.stopDrag();
+				cnv.removeEventListener(MouseEvent.MOUSE_UP,cnv_mouseUpHandler);
+				cnv.addEventListener(MouseEvent.MOUSE_DOWN,cnv_mouseDownHandler);
+				var zm:int = getZommNormalise();
+				var posG:Point = this.localToGlobal(new Point(0,0));
+				var center:Point = new Point(posG.x+this.widthAct/2,this.height/2+posG.y);
+				var p:Point= cnv.globalToContent(center);
+				posX = p.x/(zm/100);
+				posY = p.y/(zm/100);
+				reDraw = true;
+				draw();
+				reDraw =false;
+	
+			}
+			protected function scale():void{
+				var scal:Number = (((slider.value)/lastZoom));
+				cnv.scaleX = scal;
+				cnv.scaleY = scal;
+			}
+
+
+
+			protected function zoomIn(event:FlexEvent):void
+			{
+				if(slider.value+5<145){
+					slider.value+=5;
+					scale();
+				}
+			}
+
+
+			protected function zoomOut(event:FlexEvent):void
+			{
+				if(slider.value-5>5){
+					slider.value-=5;
+					scale();
+				}
+			}
+
+			protected function slider_valueCommitHandler(event:Event):void
+			{
+				if(!wheelEvent){
+					scale();
+					lastDetZoom = slider.value;
+				}else if(slider.value != lastDetZoom){
+					slider.value = lastDetZoom;
+				}
+			}
+			protected function slider_changeEndHandler(event:FlexEvent):void
+			{
+				draw();
+				lastDetZoom = slider.value;
+				wheelEvent = true;
+			}
+			
+
+
+			protected function slider_changeStartHandler(event:FlexEvent):void
+			{
+				wheelEvent = false;
+			}
+
+		]]>
+	</fx:Script>
+</mx:Module>

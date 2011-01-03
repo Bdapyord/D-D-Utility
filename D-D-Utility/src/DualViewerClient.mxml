@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					   xmlns:s="library://ns.adobe.com/flex/spark" 
+					   xmlns:mx="library://ns.adobe.com/flex/mx" xmlns:ns1="*" creationComplete="init()" name="clientViewer" xmlns:map="org.medawar.DualViewer.map.*">
+	<fx:Script>
+		<![CDATA[
+			import flash.events.ServerSocketConnectEvent;
+			import flash.net.ServerSocket;
+			import flash.net.Socket;
+			
+			import mx.controls.Alert;
+			import mx.core.Window;
+			import mx.events.*;
+			import mx.managers.PopUpManager;
+			
+			import org.medawar.DualViewer.IHM.getLibPath;
+			import org.medawar.DualViewer.map.SimpleZoomMap;
+			import org.medawar.DualViewer.map.SocketClient;
+			import org.medawar.DualViewer.scripts.GroupView;
+			import org.medawar.DualViewer.scripts.Model;
+			import org.medawar.DualViewer.scripts.XMLReciverClient;
+			
+			import spark.components.TitleWindow;
+			import spark.components.WindowedApplication;
+			
+			//private var serverSocket:ServerSocket;
+			private var file:File;
+			private var socket:SocketClient;
+			private var serverURL:String;
+			private var serverPort:String;
+			public var map:SimpleZoomMap;
+			public var m:Model = new Model();
+			private function initConn():void{
+				var client:XMLReciverClient = new XMLReciverClient();
+				client.setViewer(this);
+				socket = new SocketClient(serverURL,serverPort,client);
+			}
+			
+			private function init():void{
+				var f:File = File.applicationStorageDirectory;
+
+				var c:getLibPath =  getLibPath(PopUpManager.createPopUp( this, getLibPath , true)) as TitleWindow;
+				
+				PopUpManager.centerPopUp(c);
+				c.crtBtn.addEventListener(MouseEvent.CLICK,function():void{
+					c.returnValues();
+					new GroupView("","",c.libPaht,m);
+					serverPort=c.port;
+					serverURL =c.server;
+					map = new SimpleZoomMap("","",m);
+					addElement(map);
+					initConn();
+					
+					nativeWindow.maximize();	
+				});
+					
+					
+			}
+			
+		]]>
+	</fx:Script>
+
+
+</s:WindowedApplication>

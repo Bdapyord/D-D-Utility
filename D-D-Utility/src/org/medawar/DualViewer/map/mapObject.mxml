@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="138" height="100" add="init(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.events.FlexMouseEvent;
+			
+			protected function im_completeHandler(event:Event):void
+			{
+				this.im.width=im.contentWidth;
+				this.im.height = im.contentHeight;
+			}
+
+			protected function init(event:FlexEvent):void
+			{
+				im.addEventListener(FlexMouseEvent.MOUSE_DOWN_OUTSIDE,function(e:Event):void{ 
+					op.setVisible(false);
+				});			
+			}
+
+		]]>
+	</fx:Script>
+
+
+	<fx:Declarations>
+		<!-- Placer ici les éléments non visuels (services et objets de valeur, par exemple). -->
+	</fx:Declarations>
+	<mx:SWFLoader id="im" horizontalAlign="center" verticalAlign="middle" complete="im_completeHandler(event)" verticalCenter="-0" horizontalCenter="-0"/>
+	<s:Group id="op" visible="false" horizontalCenter="0" top="0">
+		<mx:Button icon="@Embed(source='rotate.png')" mouseDown="im.rotation+=10"  width="20" height="20" bottom="1" horizontalCenter="-18"  autoRepeat="true"  id="rotatep"/>
+		<mx:Button icon="@Embed(source='rotateConter.png')" mouseDown="im.rotation-=10"  width="20" height="20" bottom="1" horizontalCenter="-38"  autoRepeat="true"  id="rotatem"/>
+		<mx:Button icon="@Embed(source='plus.png')" mouseDown="this.im.scaleX+=0.1;this.im.scaleY+=0.1;" width="20" height="20" bottom="1" horizontalCenter="3"  autoRepeat="true"  id="scalep"/>
+		<mx:Button icon="@Embed(source='delete.png')" mouseDown="im.rotation-=10"  width="20" height="20" bottom="0" horizontalCenter="46"  autoRepeat="true"  id="del"/>
+
+		<mx:Button icon="@Embed(source='minus.png')" mouseDown="this.im.scaleX-=0.1;this.im.scaleY-=0.1;" width="20" height="20" bottom="1" horizontalCenter="24"  autoRepeat="true"  id="scalem"/>
+
+	</s:Group>
+	
+
+
+</s:Group>

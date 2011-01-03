@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Simple custom MXML TitleWindow component.
+The TitleWindowApp application displays this component. 
+You cannot run it independently. -->
+
+<s:TitleWindow	xmlns:fx="http://ns.adobe.com/mxml/2009" 
+					xmlns:s="library://ns.adobe.com/flex/spark" 
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+				title="Set the basic Information" close="PopUpManager.removePopUp(this);"  width="350" height="206" enabled="true">
+	<fx:Script>
+		<![CDATA[       
+		import mx.controls.Text;
+		import mx.managers.PopUpManager;
+		
+		// A reference to the TextInput control in which to put the result.
+		public var port:String;
+		public var server:String;
+		public var libPaht:String;
+		public var created:Boolean = false;
+		
+		// Event handler for the OK button.
+		public function returnValues():void {
+			server= serverTxt.text;
+			libPaht= libPathTI.text;
+			port= serverPort.text;
+			created=true;
+			PopUpManager.removePopUp(this);
+		}
+		
+		
+		protected function chooseLibPath(event:MouseEvent):void
+		{
+			var f:File = File.documentsDirectory;
+			file = f;
+			f.browseForDirectory("Select the campaign library");
+			f.addEventListener(Event.SELECT, function (event:Event):void {
+				libPathTI.text = f.nativePath;
+			});					
+		}
+		
+		
+		
+		]]>
+	</fx:Script>
+
+	<mx:HBox width="100%" paddingTop="30" horizontalAlign="center" height="63" bottom="0" horizontalCenter="0">
+		<mx:Spacer width="30"/>
+		<mx:Button label="Create" id="crtBtn"/>
+	</mx:HBox>
+
+	<mx:Form horizontalCenter="0" top="0">
+		<mx:FormItem label="Server *:">
+			<mx:TextInput   id="serverTxt" editable="true" width="180" text="127.0.0.1"/>
+		</mx:FormItem>
+		<mx:FormItem label="Server Port *:">
+			<mx:TextInput  id="serverPort"  editable="true" width="180" text="18000"/>			
+		</mx:FormItem>
+		<mx:FormItem label="Librairy path *:">
+			<mx:TextInput click="chooseLibPath(event)" id="libPathTI"  editable="false" width="180"/>			
+		</mx:FormItem>
+	</mx:Form>
+</s:TitleWindow>
