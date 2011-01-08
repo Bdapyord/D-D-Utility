@@ -54,7 +54,20 @@ package org.medawar.DualViewer.scripts
 		}
 		public function getRelativeURLinLib(src:String):String{
 			src=src.replace("file://","");
-			return src.replace(this.group.getLibPath()+"/","");
+			var os:String = Capabilities.os.substr(0, 3);
+			if (os == "Win") {
+				var pattern:RegExp = /(\/)/g;
+
+				src = src.replace(pattern,"\\");
+				return src.replace(this.group.getLibPath()+"\\","");
+			} else if (os == "Mac") {
+				var pattern:RegExp = /(\\)/g;
+				src = src.replace(pattern,"/");
+				return src.replace(this.group.getLibPath()+"/","");
+			 } else {          
+				  return src;
+			 }
+			
 		}
 		public function getfullURLinOS(src:String):String{
 			src = getRelativeURLinLib(src);
@@ -63,9 +76,14 @@ package org.medawar.DualViewer.scripts
 			}
 			var os:String = Capabilities.os.substr(0, 3);
 			if (os == "Win") {
-				return this.group.getLibPath()+"/"+src;
+				var pattern:RegExp = /(\/)/g;
+				
+				src = src.replace(pattern,"\\");
+				return this.group.getLibPath()+"\\"+src;
 	        } else if (os == "Mac") {
-				return"file://"+this.group.getLibPath()+"/"+src;
+				var pattern:RegExp = /(\)/g;
+				src = src.replace(pattern,"/");
+				return "file://"+this.group.getLibPath()+"/"+src;
 	        } else {          
 		        return src;
 	        }

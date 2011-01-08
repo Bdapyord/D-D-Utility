@@ -40,9 +40,11 @@ package org.medawar.DualViewer.map
 		private var maxId:uint = 0;
 		public var nameView:String;
 		private var m:Model;
+		private var srcPict:String;
 		
 		public function SimpleZoomMap(src:String , namev:String,model:Model)
 		{
+			this.srcPict = src;
 			this.m=model;
 			this.nameView = namev;
 			addEventListener( Event.ADDED, registerListeners )
@@ -64,7 +66,7 @@ package org.medawar.DualViewer.map
 			this.addElement(cont);
 			this.addElement(s);
 			
-			this.setPicture(src);
+			this.setPicture(srcPict);
 			
 		}
 		private var _loader:Loader;
@@ -77,6 +79,13 @@ package org.medawar.DualViewer.map
 		//private var objects:Vector.<mapObject> = new Vector.<mapObject>();
 		private var crnObjt:mapObject;
 		public function addObject(src:String,id:String):mapObject{
+			if(id==""){
+				id="ob"+maxId;
+				maxId++;
+			}else{
+				var t:uint = id.replace("ob","");
+				if(t>=maxId)maxId=t;
+			}
 			src = m.getfullURLinOS(src);
 			var im:mapObject = new mapObject();
 			_loader = new Loader();
@@ -106,6 +115,7 @@ package org.medawar.DualViewer.map
 			cont.addElement(im);
 			im.id=id;
 			objects[id]=im;
+			
 			return im;
 		}
 		public function getModification():String{
@@ -118,7 +128,7 @@ package org.medawar.DualViewer.map
 		public function seralize():String{
 			var xmlString:String ="";
 			
-			xmlString+="<map label='"+this.nameView+"' x='"+cont.x+"' y='"+cont.y+"' scale='"+cont.scaleX+"' source='"+m.getRelativeURLinLib(pict.source.toString())+"'>";
+			xmlString+="<map label='"+this.nameView+"' x='"+cont.x+"' y='"+cont.y+"' scale='"+cont.scaleX+"' source='"+m.getRelativeURLinLib(srcPict)+"'>";
 			for (var k:String in objects) 
 			{
 				var value:mapObject =objects[k]; // <-- lookup
@@ -145,14 +155,13 @@ package org.medawar.DualViewer.map
 			cont.scaleY = doc.@scale;
 			/*cont.scaleX = doc.firstChild.firstChild.attributes.scale;
 			cont.scaleY = doc.firstChild.firstChild.attributes.scale;*/
-			var notDel:Dictionary = new Dictionary();
+			var notDel:Array = new Array();
 			for each(var ob:XML in doc..object) { // Soit la variable bal, car le nom "balise" est déja utilisé ici
 				var mCrt:mapObject;
 				if (objects[ob.@id]==null){
 					addObject(ob.@source,ob.@id);	
 				}
 				mCrt = objects[ob.@id];
-				
 				mCrt.x=ob.@x;
 				mCrt.y=ob.@y;
 				mCrt.im.scaleX=ob.@scale;

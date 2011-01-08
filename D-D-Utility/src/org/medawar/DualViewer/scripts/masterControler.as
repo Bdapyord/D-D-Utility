@@ -222,7 +222,7 @@ protected function addObject(event:MouseEvent):void
 	var f:File = new File(crntGroup.getLibPath());
 	f.browseForOpen("Select the object directory");
 	f.addEventListener(Event.SELECT, function (event:Event):void {
-		m.getCurrentView().addObject(f.nativePath);
+		m.getCurrentView().addObject(f.nativePath,"");
 	});
 	
 }
